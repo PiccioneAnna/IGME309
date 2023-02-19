@@ -60,8 +60,47 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	std::vector<vector3> base_vertices;
+
+	// Cone tip
+	vector3 coneTip(0.0f, 0.0f, a_fHeight);
+
+	// Middle of base
+	vector3 baseCenter(0.0f, 0.0f, 0.0f);
+
+	// Generating the points for the base of the cone
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{ 
+		float angle = 2 * PI * ((float)i / (float)a_nSubdivisions);
+		float s = sin(angle) * a_fRadius;
+		float c = cos(angle) * a_fRadius;
+		base_vertices.push_back(vector3(c, s, 0.0f));
+	}
+
+	// Generating the faces leading up to the cone tip
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		if (i == a_nSubdivisions - 1) {
+			AddTri(base_vertices[i], base_vertices[0], coneTip);
+		}
+		else {
+			AddTri(base_vertices[i], base_vertices[i + 1], coneTip);
+		}
+	}
+
+	// Reversing the base vertices for consistent direction of faces
+	std:reverse(base_vertices.begin(), base_vertices.end());
+
+	// Generating the faces based off of the points above for base
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		if (i == a_nSubdivisions - 1) {
+			AddTri(base_vertices[i], base_vertices[0], baseCenter);
+		}
+		else {
+			AddTri(base_vertices[i], base_vertices[i + 1], baseCenter);
+		}
+	}
 	// -------------------------------
 
 	// Adding information about color
@@ -84,8 +123,67 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	std::vector<vector3> base_vertices;
+	std::vector<vector3> top_vertices;
+
+	// Middle of centers
+	vector3 baseCenter(0, 0, 0);
+	vector3 topCenter(0, 0, a_fHeight);
+
+	// Generating the points for the base of the cylinder
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		float angle = 2 * PI * ((float)i / (float)a_nSubdivisions);
+		float s = sin(angle) * a_fRadius;
+		float c = cos(angle) * a_fRadius;
+		base_vertices.push_back(vector3(c, s, 0.0f));
+	}
+
+	// Generating the points for the top of the cylinder
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		float angle = 2 * PI * ((float)i / (float)a_nSubdivisions);
+		float s = sin(angle) * a_fRadius;
+		float c = cos(angle) * a_fRadius;
+		top_vertices.push_back(vector3(c, s, a_fHeight));
+	}
+
+	// Generating the faces based off of the points above for top
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		if (i == a_nSubdivisions - 1) {
+			AddTri(top_vertices[i], top_vertices[0], topCenter);
+		}
+		else {
+			AddTri(top_vertices[i], top_vertices[i + 1], topCenter);
+		}
+	}
+
+	// Generating the faces based off of the points above for top
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		if (i == a_nSubdivisions - 1) {
+			AddQuad(base_vertices[i], base_vertices[0], top_vertices[i], top_vertices[0]);
+		}
+		else {
+			AddQuad(base_vertices[i], base_vertices[i+1], top_vertices[i], top_vertices[i+1]);
+		}
+	}
+
+	// Reversing the base vertices for consistent direction of faces
+	std::reverse(base_vertices.begin(), base_vertices.end());
+
+	// Generating the faces based off of the points above for base
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		if (i == a_nSubdivisions - 1) {
+			AddTri(base_vertices[i], base_vertices[0], baseCenter);
+		}
+		else {
+			AddTri(base_vertices[i], base_vertices[i + 1], baseCenter);
+		}
+	}
+
 	// -------------------------------
 
 	// Adding information about color
@@ -114,8 +212,99 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+	std::vector<vector3> base_vertices_outer;
+	std::vector<vector3> base_vertices_inner;
+	std::vector<vector3> top_vertices_outer;
+	std::vector<vector3> top_vertices_inner;
+
+	// Generating the points for the outer base of the tube
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		float angle = 2 * PI * ((float)i / (float)a_nSubdivisions);
+		float s = sin(angle) * a_fOuterRadius;
+		float c = cos(angle) * a_fOuterRadius;
+		base_vertices_outer.push_back(vector3(c, s, 0.0f));
+	}
+
+	// Generating the points for the inner base of the tube
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		float angle = 2 * PI * ((float)i / (float)a_nSubdivisions);
+		float s = sin(angle) * a_fInnerRadius;
+		float c = cos(angle) * a_fInnerRadius;
+		base_vertices_inner.push_back(vector3(c, s, 0.0f));
+	}
+
+	// Generating the points for the outer top of the tube
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		float angle = 2 * PI * ((float)i / (float)a_nSubdivisions);
+		float s = sin(angle) * a_fOuterRadius;
+		float c = cos(angle) * a_fOuterRadius;
+		top_vertices_outer.push_back(vector3(c, s, a_fHeight));
+	}
+
+	// Generating the points for the inner top of the tube
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		float angle = 2 * PI * ((float)i / (float)a_nSubdivisions);
+		float s = sin(angle) * a_fInnerRadius;
+		float c = cos(angle) * a_fInnerRadius;
+		top_vertices_inner.push_back(vector3(c, s, a_fHeight));
+	}
+
+	// Generating the outer faces connecting top and bottom
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		if (i == a_nSubdivisions - 1) {
+			AddQuad(base_vertices_outer[i], base_vertices_outer[0], top_vertices_outer[i], top_vertices_outer[0]);
+		}
+		else {
+			AddQuad(base_vertices_outer[i], base_vertices_outer[i + 1], top_vertices_outer[i], top_vertices_outer[i + 1]);
+		}
+	}
+
+	// Reversing the base vertices for consistent direction of faces
+	std::reverse(base_vertices_outer.begin(), base_vertices_outer.end());
+	std::reverse(base_vertices_inner.begin(), base_vertices_inner.end());
+
+	// Generating the faces based off of the points above for base
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		if (i == a_nSubdivisions - 1) {
+			AddQuad(base_vertices_outer[i], base_vertices_outer[0], base_vertices_inner[i], base_vertices_inner[0]);
+		}
+		else {
+			AddQuad(base_vertices_outer[i], base_vertices_outer[i+1], base_vertices_inner[i], base_vertices_inner[i+1]);
+		}
+	}
+
+	// Generating the faces based off of the points above for top
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		if (i == a_nSubdivisions - 1) {
+			AddQuad(top_vertices_outer[i], top_vertices_outer[0], top_vertices_inner[i], top_vertices_inner[0]);
+		}
+		else {
+			AddQuad(top_vertices_outer[i], top_vertices_outer[i + 1], top_vertices_inner[i], top_vertices_inner[i + 1]);
+		}
+	}
+
+	// Reversing the top vertices for consistent direction of faces
+	std::reverse(top_vertices_outer.begin(), top_vertices_outer.end());
+	std::reverse(top_vertices_inner.begin(), top_vertices_inner.end());
+
+	// Generating the inner faces connecting top and bottom
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		if (i == a_nSubdivisions - 1) {
+			AddQuad(base_vertices_inner[i], base_vertices_inner[0], top_vertices_inner[i], top_vertices_inner[0]);
+		}
+		else {
+			AddQuad(base_vertices_inner[i], base_vertices_inner[i + 1], top_vertices_inner[i], top_vertices_inner[i + 1]);
+		}
+	}
+
 	// -------------------------------
 
 	// Adding information about color
@@ -146,8 +335,34 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+	std::vector<vector3> vertices;
+	float tubeRadius = ((a_fOuterRadius - a_fInnerRadius) / 2);
+
+	// Generating vertices
+	for (size_t i = 0; i < a_nSubdivisionsA; i++) {
+		for (size_t j = 0; j < a_nSubdivisionsB; j++) {
+			auto u = (float)j / a_nSubdivisionsA * PI * 2.0;
+			auto v = (float)i / a_nSubdivisionsB * PI * 2.0;
+			auto x = (a_fOuterRadius + tubeRadius * cos(v)) * cos(u);
+			auto y = (a_fOuterRadius + tubeRadius * cos(v)) * sin(u);
+			auto z = tubeRadius * sin(v);
+			vertices.push_back(vector3(x, y, z));
+		}
+	}
+
+	// Generating quad faces
+	for (size_t i = 0; i < a_nSubdivisionsA; i++) {
+		auto i_next = (i + 1) % a_nSubdivisionsA;
+		for (size_t j = 0; j < a_nSubdivisionsB; j++) {
+			auto j_next = (j + 1) % a_nSubdivisionsB;
+			auto i0 = i * a_nSubdivisionsB + j;
+			auto i1 = i * a_nSubdivisionsB + j_next;
+			auto i2 = i_next * a_nSubdivisionsB + j;
+			auto i3 = i_next * a_nSubdivisionsB + j_next;
+			AddQuad(vertices[i0], vertices[i1], vertices[i2], vertices[i3]);
+		}
+	}
+
 	// -------------------------------
 
 	// Adding information about color
@@ -159,7 +374,7 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 	if (a_fRadius < 0.01f)
 		a_fRadius = 0.01f;
 
-	//Sets minimum and maximum of subdivisions
+	// Sets minimum and maximum of subdivisions
 	if (a_nSubdivisions < 1)
 	{
 		GenerateCube(a_fRadius * 2.0f, a_v3Color);
@@ -171,8 +386,58 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	// North and south vectors - top and bottom of sphere
+	vector3 vN(0, a_fRadius, 0);
+	vector3 vS(0, -a_fRadius, 0);
+
+	std::vector<vector3> vertices;
+
+	// Starting off vertices list with the north point of sphere
+	vertices.push_back(vN);
+
+	// Generating vertices based on subdivisions
+	for (size_t i = 0; i < a_nSubdivisions - 1; i++)
+	{
+		auto phi = PI * float(i + 1) / float(a_nSubdivisions);
+		for (int j = 0; j < a_nSubdivisions; j++)
+		{
+			auto theta = 2.0 * PI * float(j) / float(a_nSubdivisions);
+			auto x = sin(phi) * cos(theta) * a_fRadius;
+			auto y = cos(phi) * a_fRadius;
+			auto z = sin(phi) * sin(theta) * a_fRadius;
+			vertices.push_back(vector3(x, y, z));
+		}
+	}
+
+	// Finishing off vertices list with the south point of sphere
+	vertices.push_back(vS);
+
+	// Generating top & bottom triangles
+	for (size_t i = 0; i < a_nSubdivisions; i++)
+	{
+		auto j = i + 1;
+		auto k = (i + 1) % a_nSubdivisions + 1;
+		AddTri(vN, vertices[k], vertices[j]);
+		j = i + a_nSubdivisions * (a_nSubdivisions - 2) + 1;
+		k = (i + 1) % a_nSubdivisions + a_nSubdivisions * (a_nSubdivisions - 2) + 1;
+		AddTri(vS, vertices[j], vertices[k]);
+	}
+
+	// Generating quads to finish sphere off
+	for (size_t i = 0; i < a_nSubdivisions - 2; i++)
+	{
+		auto j0 = i * a_nSubdivisions + 1;
+		auto j1 = (i + 1) * a_nSubdivisions + 1;
+		for (size_t k = 0; k < a_nSubdivisions; k++)
+		{
+			auto l0 = j0 + k;
+			auto l1 = j0 + (k + 1) % a_nSubdivisions;
+			auto l2 = j1 + k;
+			auto l3 = j1 + (k + 1) % a_nSubdivisions;
+			AddQuad(vertices[l0], vertices[l1],  vertices[l2], vertices[l3]);
+		}
+	}
+
 	// -------------------------------
 
 	// Adding information about color
