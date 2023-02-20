@@ -2,7 +2,7 @@
 void Application::InitVariables(void)
 {
 	////Change this to your name and email
-	m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Anna Piccione - ajp7549@rit.edu";
 	vector3 v3Position(0.0f, 0.0f, 10.0f);
 	vector3 v3Target = ZERO_V3;
 	vector3 v3Upward = AXIS_Y;
@@ -40,22 +40,6 @@ void Application::Display(void)
 	matrix4 m4View = m_pCameraMngr->GetViewMatrix(); //view Matrix
 	matrix4 m4Projection = m_pCameraMngr->GetProjectionMatrix(); //Projection Matrix
 
-	//Matrix of the model, its position in the world
-	/* //Sol 1
-	float fStartPos = -5.0f;
-	float fEndPos = 5.0f;
-	static DWORD dStartTime = GetTickCount();
-	DWORD dCurrentTime = GetTickCount();
-	DWORD dTime = dCurrentTime - dStartTime;
-	float fTime = dTime / 1000.0f;
-	float fTotalAnimationTime = 10.0f;
-	//fTotal -> 1.0f
-	//fTime -> x
-	float fPercentage = fTime  / fTotalAnimationTime;
-	float fCurrentPos = glm::lerp(fStartPos, fEndPos, fPercentage);
-	matrix4 m4Model = glm::translate(IDENTITY_M4, vector3(fCurrentPos, 0.0f, 0.0f));
-	*/
-
 	//Sol2
 	//Get a timer
 	static float fTimer = 0;	//store the new timer
@@ -67,10 +51,17 @@ void Application::Display(void)
 	static bool bInit = false; //Initialize once
 	if (!bInit)
 	{
-		v3Stop.push_back(vector3(-3, -0, 0));
-		v3Stop.push_back(vector3(3, -0, 0));
-		v3Stop.push_back(vector3(0, 2.5, 0));
-		v3Stop.push_back(vector3(0, -2.5, 0));
+		v3Stop.push_back(vector3(-4.0f, -2.0f, 5.0f));
+		v3Stop.push_back(vector3(1.0f, -2.0f, 5.0f));
+		v3Stop.push_back(vector3(-3.0f, -1.0f, 3.0f));
+		v3Stop.push_back(vector3(2.0f, -1.0f, 3.0f));
+		v3Stop.push_back(vector3(-2.0f, 0.0f, 0.0f));
+		v3Stop.push_back(vector3(3.0f, 0.0f, 0.0f));
+		v3Stop.push_back(vector3(-1.0f, 1.0f, -3.0f));
+		v3Stop.push_back(vector3(4.0f, 1.0f, -3.0f));
+		v3Stop.push_back(vector3(0.0f, 2.0f, -5.0f));
+		v3Stop.push_back(vector3(5.0f, 2.0f, -5.0f));
+		v3Stop.push_back(vector3(1.0f, 3.0f, -5.0f));
 		bInit = true;
 	}
 
