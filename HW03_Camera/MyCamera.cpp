@@ -5,7 +5,10 @@ void MyCamera::SetPositionTargetAndUpward(vector3 a_v3Position, vector3 a_v3Targ
 {
 	//TODO:: replace the super call with your functionality
 	//Tip: Changing any positional vector forces you to calculate new directional ones
-	super::SetPositionTargetAndUpward(a_v3Position, a_v3Target, a_v3Upward);
+	m_v3Position = a_v3Position;
+	m_v3Target = a_v3Target;
+
+	m_v3Above = a_v3Position + glm::normalize(a_v3Upward);
 
 	//After changing any vectors you need to recalculate the MyCamera View matrix.
 	//While this is executed within the parent call above, when you remove that line
@@ -21,25 +24,48 @@ void MyCamera::MoveForward(float a_fDistance)
 	//		 in the _Binary folder you will notice that we are moving 
 	//		 backwards and we never get closer to the plane as we should 
 	//		 because as we are looking directly at it.
-	m_v3Position += vector3(0.0f, 0.0f, a_fDistance);
-	m_v3Target += vector3(0.0f, 0.0f, a_fDistance);
+
+	m_v3Position += glm::normalize(m_v3Target - m_v3Position) * a_fDistance;
+	m_v3Target += glm::normalize(m_v3Target - m_v3Position) * a_fDistance;
 }
 void MyCamera::MoveVertical(float a_fDistance)
 {
-	//Tip:: Look at MoveForward
+	m_v3Position += vector3(0.0f, a_fDistance, 0.0f);
+	m_v3Target += vector3(0.0f, a_fDistance, 0.0f);
 }
 void MyCamera::MoveSideways(float a_fDistance)
 {
-	//Tip:: Look at MoveForward
+	m_v3Position += glm::normalize(glm::cross(m_v3Upward, glm::normalize(m_v3Position - m_v3Target))) * a_fDistance;
+	m_v3Target += glm::normalize(glm::cross(m_v3Upward, glm::normalize(m_v3Position - m_v3Target))) * a_fDistance;
 }
 void MyCamera::CalculateView(void)
 {
-	//Tips:: Directional vectors will be affected by the orientation in the quaternion
+	// Tips:: Directional vectors will be affected by the orientation in the quaternion
 	//		 After calculating any new vector one needs to update the View Matrix
 	//		 Camera rotation should be calculated out of the m_v3PitchYawRoll member
 	//		 it will receive information from the main code on how much these orientations
 	//		 have change so you only need to focus on the directional and positional 
 	//		 vectors. There is no need to calculate any right click process or connections.
+
+	// Get yaw and pitch from m_v3PitchYawRoll & clamp view
+	float yaw = m_v3PitchYawRoll.y;
+	float pitch = glm::clamp(m_v3PitchYawRoll.x, -90.0f, 90.0f);
+
+	// Directional Vector3 from yaw & pitch
+	vector3 direction;
+	direction.x = cos(yaw) * cos(pitch);
+	direction.y = sin(pitch);
+	direction.z = sin(yaw) * cos(pitch);
+
+	// Projection quaternion
+	quaternion q1;
+	quaternion q2 = glm::angleAxis(glm::radians(359.99f), direction);
+	quaternion qSLERP = glm::mix(q1, q2, 0.1f);
+	m_m4Projection = glm::toMat4(qSLERP);
+
+	// Set target position using qSLERP, accounting for orientational issues
+	m_v3Target = vector3(-qSLERP.x, -qSLERP.y, qSLERP.z);
+
 	m_m4View = glm::lookAt(m_v3Position, m_v3Target, m_v3Upward);
 }
 //You can assume that the code below does not need changes unless you expand the functionality
