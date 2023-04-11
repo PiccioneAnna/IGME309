@@ -6,7 +6,122 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	//TODO: Calculate the SAT algorithm I STRONGLY suggest you use the
 	//Real Time Collision detection algorithm for OBB here but feel free to
 	//implement your own solution.
-	return BTXs::eSATResults::SAT_NONE;
+
+	float ra;
+	float rb;
+
+	matrix3 R;
+	matrix3 AbsR;
+
+	// Rotation matrix for b in a's coordinate frame
+	for (size_t i = 0; i < 3; i++)
+	{
+		for (size_t j = 0; j < 3; j++)
+		{
+			R[i][j] = glm::dot(this->GetModelMatrix()[i], a_pOther->GetModelMatrix()[j]);
+		}
+	}
+
+	// Translation vector
+	vector3 t = a_pOther->GetCenterGlobal() - this->GetCenterGlobal();
+	// Bring into a's coordinate frame
+	t = vector3(glm::dot(t, vector3(this->GetModelMatrix()[0])), glm::dot(t, vector3(this->GetModelMatrix()[1])), glm::dot(t, vector3(this->GetModelMatrix()[2])));
+
+	for (size_t i = 0; i < 3; i++)
+	{
+		for (size_t j = 0; j < 3; j++)
+		{
+			AbsR[i][j] = glm::abs(R[i][j]) + glm::epsilon<float>();
+		}
+	}
+
+	// Test axes L=A0, L=A1, L=A2
+	for (size_t i = 0; i < 3; i++)
+	{
+		ra = this->m_v3HalfWidth[i];
+		rb = a_pOther->m_v3HalfWidth[0] * AbsR[i][0] + a_pOther->m_v3HalfWidth[1] * AbsR[i][1] + a_pOther->m_v3HalfWidth[2] * AbsR[i][2];
+		if (glm::abs(t[i]) > ra + rb)
+		{
+			return 0;
+		}
+	}
+
+	// Test axes L=B0, L=B1, L=B2
+	for (size_t i = 0; i < 3; i++)
+	{
+		ra = this->m_v3HalfWidth[0] * AbsR[0][i] + this->m_v3HalfWidth[1] * AbsR[1][i] + this->m_v3HalfWidth[2] * AbsR[2][i];
+		rb = a_pOther->m_v3HalfWidth[i];
+		if (glm::abs(t[0] * R[0][i] + t[1] * R[1][i] + t[2] * R[2][i]) > ra + rb)
+		{
+			return 0;
+		}
+	}
+
+	// Test axis L = A0 x B0
+	ra = this->m_v3HalfWidth[1] * AbsR[2][0] + this->m_v3HalfWidth[2] * AbsR[1][0];
+	rb = a_pOther->m_v3HalfWidth[1] * AbsR[0][2] + a_pOther->m_v3HalfWidth[2] * AbsR[0][1];
+	if (glm::abs(t[2] * R[1][0] - t[1] * R[2][0]) > ra + rb) {
+		return 0;
+	}
+
+	// Test axis L = A0 x B1
+	ra = this->m_v3HalfWidth[1] * AbsR[2][1] + this->m_v3HalfWidth[2] * AbsR[1][1];
+	rb = a_pOther->m_v3HalfWidth[0] * AbsR[0][2] + a_pOther->m_v3HalfWidth[2] * AbsR[0][0];
+	if (glm::abs(t[2] * R[1][1] - t[1] * R[2][1]) > ra + rb) {
+		return 0;
+	}
+
+	// Test axis L = A0 x B2
+	ra = this->m_v3HalfWidth[1] * AbsR[2][2] + this->m_v3HalfWidth[2] * AbsR[1][2];
+	rb = a_pOther->m_v3HalfWidth[0] * AbsR[0][1] + a_pOther->m_v3HalfWidth[2] * AbsR[0][0];
+	if (glm::abs(t[2] * R[1][2] - t[1] * R[2][2]) > ra + rb) {
+		return 0;
+	}
+
+	// Test axis L = A1 x B0
+	ra = this->m_v3HalfWidth[0] * AbsR[2][0] + this->m_v3HalfWidth[2] * AbsR[0][0];
+	rb = a_pOther->m_v3HalfWidth[1] * AbsR[1][2] + a_pOther->m_v3HalfWidth[2] * AbsR[1][1];
+	if (glm::abs(t[0] * R[2][0] - t[2] * R[0][0]) > ra + rb) {
+		return 0;
+	}
+
+	// Test axis L = A1 x B1
+	ra = this->m_v3HalfWidth[0] * AbsR[2][1] + this->m_v3HalfWidth[2] * AbsR[0][1];
+	rb = a_pOther->m_v3HalfWidth[0] * AbsR[1][2] + a_pOther->m_v3HalfWidth[2] * AbsR[1][0];
+	if (glm::abs(t[0] * R[2][1] - t[2] * R[0][1]) > ra + rb) {
+		return 0;
+	}
+
+	// Test axis L = A1 x B2
+	ra = this->m_v3HalfWidth[0] * AbsR[2][2] + this->m_v3HalfWidth[2] * AbsR[0][2];
+	rb = a_pOther->m_v3HalfWidth[0] * AbsR[1][1] + a_pOther->m_v3HalfWidth[1] * AbsR[1][0];
+	if (glm::abs(t[0] * R[2][2] - t[2] * R[0][2]) > ra + rb) {
+		return 0;
+	}
+
+	// Test axis L = A2 x B0
+	ra = this->m_v3HalfWidth[0] * AbsR[1][0] + this->m_v3HalfWidth[1] * AbsR[0][0];
+	rb = a_pOther->m_v3HalfWidth[1] * AbsR[2][2] + a_pOther->m_v3HalfWidth[2] * AbsR[2][1];
+	if (glm::abs(t[1] * R[0][0] - t[0] * R[1][0]) > ra + rb) {
+		return 0;
+	}
+
+	// Test axis L = A2 x B1
+	ra = this->m_v3HalfWidth[0] * AbsR[1][1] + this->m_v3HalfWidth[1] * AbsR[0][1];
+	rb = a_pOther->m_v3HalfWidth[0] * AbsR[2][2] + a_pOther->m_v3HalfWidth[2] * AbsR[2][0];
+	if (glm::abs(t[1] * R[0][1] - t[0] * R[1][1]) > ra + rb) {
+		return 0;
+	}
+
+	// Test axis L = A2 x B2
+	ra = this->m_v3HalfWidth[0] * AbsR[1][2] + this->m_v3HalfWidth[1] * AbsR[0][2];
+	rb = a_pOther->m_v3HalfWidth[0] * AbsR[2][1] + a_pOther->m_v3HalfWidth[1] * AbsR[2][0];
+	if (glm::abs(t[1] * R[0][2] - t[0] * R[1][2]) > ra + rb) {
+		return 0;
+	}
+
+	return 1;
+
 }
 bool MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
 {
@@ -21,7 +136,7 @@ bool MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
 	{
 		uint nResult = SAT(a_pOther);
 
-		if (bColliding) //The SAT shown they are colliding
+		if (nResult) //The SAT shown they are colliding
 		{
 			this->AddCollisionWith(a_pOther);
 			a_pOther->AddCollisionWith(this);

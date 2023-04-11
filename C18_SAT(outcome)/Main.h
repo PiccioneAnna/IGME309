@@ -1,6 +1,6 @@
 /*----------------------------------------------
 Programmer: Alberto Bobadilla (labigm@rit.edu)
-Date: 2021/02
+Date: 2021/02efined
 ----------------------------------------------*/
 #ifndef __MAIN_H_
 #define __MAIN_H_
